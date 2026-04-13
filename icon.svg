@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="120" fill="#0d0d0d"/>
+  <rect x="30" y="30" width="452" height="452" rx="100" fill="#181818"/>
+  <!-- car body -->
+  <rect x="80" y="280" width="352" height="100" rx="20" fill="#e8c84a"/>
+  <path d="M140 280 L180 200 L332 200 L372 280Z" fill="#e8c84a"/>
+  <!-- windows -->
+  <path d="M190 215 L210 240 L302 240 L322 215Z" fill="#0d0d0d" opacity="0.6"/>
+  <!-- wheels -->
+  <circle cx="160" cy="380" r="45" fill="#2c2c2c"/>
+  <circle cx="160" cy="380" r="25" fill="#888"/>
+  <circle cx="352" cy="380" r="45" fill="#2c2c2c"/>
+  <circle cx="352" cy="380" r="25" fill="#888"/>
+  <!-- dollar sign -->
+  <text x="256" y="165" font-family="Arial" font-weight="bold" font-size="80" fill="#e8c84a" text-anchor="middle">$</text>
+</svg>

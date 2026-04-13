@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="愛車管家">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0d0d0d">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>愛車管家</title>
+<style>
+:root {
+  --bg: #0d0d0d;
+  --s1: #181818;
+  --s2: #212121;
+  --s3: #2a2a2a;
+  --bd: #303030;
+  --acc: #e8c84a;
+  --acc2: #f0872a;
+  --blue: #4ab8e8;
+  --green: #5ec46a;
+  --red: #e05555;
+  --tx: #edeae3;
+  --txm: #666;
+  --r: 14px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:var(--bg);}
+body{
+  color:var(--tx);
+  font-family:-apple-system,BlinkMacSystemFont,'Noto Sans TC',sans-serif;
+  display:flex;flex-direction:column;
+}
+
+/* ── TOP BAR ── */
+.topbar{
+  background:#111;
+  border-bottom:1.5px solid var(--acc);
+  padding: calc(var(--safe-top) + 12px) 18px 12px;
+  flex-shrink:0;
+  display:flex;align-items:center;gap:12px;
+}
+.topbar-icon{
+  background:var(--acc);border-radius:50%;
+  width:38px;height:38px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;flex-shrink:0;
+}
+.topbar h1{
+  font-size:1.35rem;font-weight:700;letter-spacing:2px;color:var(--acc);
+}
+.topbar-sub{font-size:.65rem;color:var(--txm);margin-top:1px;}
+.save-btn{
+  margin-left:auto;
+  background:var(--acc);border:none;border-radius:10px;
+  color:#111;font-size:.8rem;font-weight:700;
+  padding:8px 14px;cursor:pointer;flex-shrink:0;
+  transition:background .15s;
+  font-family:-apple-system,BlinkMacSystemFont,'Noto Sans TC',sans-serif;
+}
+.save-btn:active{background:#f0d85a;}
+
+/* ── SCROLLABLE CONTENT ── */
+.scroll-area{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  padding-bottom:calc(var(--safe-bot) + 80px);
+}
+
+/* ── BOTTOM TABS ── */
+.bottom-tabs{
+  background:#111;
+  border-top:1px solid var(--bd);
+  padding: 8px 0 calc(var(--safe-bot) + 6px);
+  flex-shrink:0;
+  display:flex;
+}
+.tab-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:none;border:none;color:var(--txm);
+  font-family:-apple-system,BlinkMacSystemFont,'Noto Sans TC',sans-serif;
+  font-size:.6rem;cursor:pointer;padding:4px 0;
+  transition:color .15s;
+}
+.tab-item .icon{font-size:1.4rem;}
+.tab-item.active{color:var(--acc);}
+
+/* ── PAGES ── */
+.page{display:none;padding:16px 14px 0;}
+.page.active{display:block;}
+
+/* ── SECTION TITLE ── */
+.sec{
+  font-size:.62rem;letter-spacing:2px;color:var(--txm);
+  text-transform:uppercase;margin-bottom:8px;margin-top:18px;
+  display:flex;align-items:center;gap:8px;
+}
+.sec:first-child{margin-top:0;}
+.sec::after{content:'';flex:1;height:1px;background:var(--bd);}
+
+/* ── CARDS ── */
+.card{
+  background:var(--s1);border:1px solid var(--bd);
+  border-radius:var(--r);padding:14px;margin-bottom:10px;
+}
+.card-sm{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:12px;}
+
+/* ── STAT GRID ── */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.stats.two{grid-template-columns:repeat(2,1fr);}
+.stat{
+  background:var(--s1);border:1px solid var(--bd);
+  border-radius:var(--r);padding:12px 8px;text-align:center;
+}
+.stat .l{font-size:.58rem;color:var(--txm);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;}
+.stat .v{font-size:1.25rem;font-weight:700;letter-spacing:.5px;}
+.y{color:var(--acc);} .b{color:var(--blue);} .g{color:var(--green);} .o{color:var(--acc2);} .r{color:var(--red);}
+
+/* ── GRAND TOTAL ── */
+.grand{
+  background:linear-gradient(135deg,#1f1c0e,#1a1a1a);
+  border:1.5px solid var(--acc);
+  border-radius:var(--r);padding:16px;margin-bottom:14px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.grand .big{font-size:2rem;font-weight:700;color:var(--acc);letter-spacing:1px;}
+.grand .label{font-size:.62rem;color:var(--txm);margin-bottom:3px;}
+.grand .month{font-size:1.2rem;font-weight:700;color:var(--acc2);}
+
+/* ── INPUTS ── */
+.fg{margin-bottom:10px;}
+.fg label{font-size:.65rem;color:var(--txm);display:block;margin-bottom:4px;}
+input,select,textarea{
+  background:var(--s2);border:1.5px solid var(--bd);
+  border-radius:10px;color:var(--tx);
+  font-family:-apple-system,BlinkMacSystemFont,'Noto Sans TC',sans-serif;
+  font-size:.9rem;padding:11px 12px;width:100%;
+  outline:none;transition:border-color .2s;
+  -webkit-appearance:none;appearance:none;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--acc);}
+input::placeholder,textarea::placeholder{color:var(--txm);}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+select option{background:var(--s2);}
+textarea{resize:none;min-height:72px;line-height:1.6;}
+input[type=number]{text-align:left;}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+
+/* ── BUTTONS ── */
+.btn{
+  background:var(--acc);border:none;border-radius:12px;
+  color:#111;font-weight:700;font-size:.88rem;
+  padding:13px;width:100%;cursor:pointer;
+  font-family:-apple-system,BlinkMacSystemFont,'Noto Sans TC',sans-serif;
+  transition:background .15s;margin-top:10px;
+}
+.btn:active{background:#f0d85a;}
+.btn-ghost{
+  background:var(--s2);border:1px solid var(--bd);
+  border-radius:12px;color:var(--txm);font-size:.82rem;
+  padding:11px;cursor:pointer;
+  font-family:-apple-system,BlinkMacSystemFont,'Noto Sans TC',sans-serif;
+  transition:all .15s;
+}
+.btn-ghost:active{border-color:var(--txm);color:var(--tx);}
+
+/* ── ACCORDION ── */
+.acc-block{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:8px;overflow:hidden;}
+.acc-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 14px;cursor:pointer;
+  background:var(--s2);
+}
+.acc-head-l{display:flex;align-items:center;gap:8px;font-size:.88rem;font-weight:500;}
+.acc-total{font-size:1rem;font-weight:700;color:var(--acc);}
+.acc-chev{color:var(--txm);font-size:.7rem;transition:transform .2s;}
+.acc-block.open .acc-chev{transform:rotate(180deg);}
+.acc-body{display:none;padding:10px 12px 12px;border-top:1px solid var(--bd);}
+.acc-block.open .acc-body{display:block;}
+
+.erow{display:grid;grid-template-columns:1fr 100px 34px;gap:7px;align-items:center;margin-bottom:6px;}
+.erow input[type=number]{text-align:right;}
+.btn-rm{
+  background:transparent;border:1px solid #3a3a3a;border-radius:8px;
+  color:var(--txm);cursor:pointer;height:36px;width:34px;
+  display:flex;align-items:center;justify-content:center;font-size:.85rem;
+  transition:all .15s;
+}
+.btn-rm:active{background:var(--red);border-color:var(--red);color:#fff;}
+.btn-add-row{
+  background:transparent;border:1.5px dashed var(--bd);border-radius:8px;
+  color:var(--txm);cursor:pointer;font-size:.75rem;
+  padding:8px;width:100%;text-align:center;
+  transition:all .2s;margin-top:4px;
+  font-family:-apple-system,BlinkMacSystemFont,'Noto Sans TC',sans-serif;
+}
+.btn-add-row:active{border-color:var(--acc);color:var(--acc);}
+
+/* ── LOG LIST ── */
+.log-list{display:flex;flex-direction:column;gap:8px;margin-bottom:8px;}
+.log-card{
+  background:var(--s1);border:1px solid var(--bd);
+  border-radius:var(--r);padding:12px 14px;
+  position:relative;
+}
+.log-card .top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;}
+.log-card .date{font-size:.72rem;color:var(--txm);}
+.log-card .amount{font-size:1.1rem;font-weight:700;color:var(--acc);}
+.log-card .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;}
+.log-card .chip{font-size:.7rem;color:var(--txm);background:var(--s3);padding:2px 8px;border-radius:20px;}
+.log-card .chip.b{color:var(--blue);background:rgba(74,184,232,.1);}
+.log-card .chip.g{color:var(--green);background:rgba(94,196,106,.1);}
+.log-card .chip.o{color:var(--acc2);background:rgba(240,135,42,.1);}
+.log-del{
+  position:absolute;top:10px;right:10px;
+  background:none;border:none;color:var(--txm);
+  cursor:pointer;font-size:1rem;padding:4px;
+  transition:color .15s;
+}
+.log-del:active{color:var(--red);}
+.log-note{font-size:.72rem;color:var(--txm);margin-top:4px;}
+
+/* ── BADGE ── */
+.badge{display:inline-block;font-size:.62rem;padding:2px 7px;border-radius:20px;font-weight:600;margin-top:4px;}
+.badge.ok{background:rgba(94,196,106,.15);color:var(--green);}
+.badge.warn{background:rgba(240,135,42,.15);color:var(--acc2);}
+.badge.err{background:rgba(224,85,85,.15);color:var(--red);}
+
+/* ── TREND CANVAS ── */
+.trend-wrap{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:10px;}
+
+/* ── BAR CHART ── */
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.bar-lbl{font-size:.68rem;color:var(--txm);width:60px;flex-shrink:0;text-align:right;}
+.bar-track{flex:1;background:var(--s3);border-radius:4px;height:11px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.bar-val{font-size:.7rem;font-weight:700;width:72px;text-align:right;}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:28px 16px;color:var(--txm);font-size:.82rem;}
+.empty .ico{font-size:1.8rem;margin-bottom:8px;}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:calc(var(--safe-bot) + 90px);left:50%;
+  transform:translateX(-50%) translateY(60px);
+  background:#222;border:1px solid var(--acc);
+  border-radius:12px;color:var(--tx);font-size:.82rem;
+  padding:10px 20px;z-index:9999;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+  white-space:nowrap;pointer-events:none;
+}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* ── SEPARATOR ── */
+.sep{height:1px;background:var(--bd);margin:14px 0;}
+
+/* ── DANGER ZONE ── */
+.danger-btn{
+  background:transparent;border:1px solid var(--red);border-radius:12px;
+  color:var(--red);font-size:.82rem;padding:11px;width:100%;cursor:pointer;
+  font-family:-apple-system,BlinkMacSystemFont,'Noto Sans TC',sans-serif;
+}
+
+/* ── INSTALL HINT ── */
+.install-hint{
+  background:rgba(232,200,74,.08);border:1px solid rgba(232,200,74,.25);
+  border-radius:var(--r);padding:12px 14px;margin-bottom:12px;
+  font-size:.75rem;line-height:1.6;color:#ccc;
+  display:none;
+}
+.install-hint strong{color:var(--acc);}
+.install-hint.show{display:block;}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-icon">🚗</div>
+  <div>
+    <h1>愛車管家</h1>
+    <div class="topbar-sub" id="car-subtitle">長期費用監控</div>
+  </div>
+  <button class="save-btn" onclick="saveAll()">儲存</button>
+</div>
+
+<!-- SCROLL CONTENT -->
+<div class="scroll-area" id="scrollArea">
+
+  <!-- PAGE: 總覽 -->
+  <div class="page active" id="page-overview">
+    <div id="install-hint" class="install-hint">
+      📱 <strong>加到主畫面：</strong>點底部 Safari 分享按鈕 → 「加入主畫面」，之後就像 App 一樣開啟！
+    </div>
+    <div class="grand">
+      <div>
+        <div class="label">持有總花費</div>
+        <div class="big" id="ov-grand">$0</div>
+      </div>
+      <div style="text-align:right">
+        <div class="label">本月花費</div>
+        <div class="month" id="ov-month">$0</div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="l">購車成本</div><div class="v y" id="ov-buy">$0</div></div>
+      <div class="stat"><div class="l">加油總計</div><div class="v b" id="ov-fuel">$0</div></div>
+      <div class="stat"><div class="l">保養總計</div><div class="v g" id="ov-maint">$0</div></div>
+      <div class="stat"><div class="l">加油次數</div><div class="v b" id="ov-fc">0</div></div>
+      <div class="stat"><div class="l">保養次數</div><div class="v g" id="ov-mc">0</div></div>
+      <div class="stat"><div class="l">平均油耗</div><div class="v o" id="ov-kmpl">—</div></div>
+    </div>
+    <div class="sec">📈 月費用趨勢（近12個月）</div>
+    <div class="trend-wrap"><canvas id="trendCanvas"></canvas></div>
+    <div class="sec">💴 費用分佈</div>
+    <div id="ov-chart" style="background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:10px;">
+      <div class="empty"><div class="ico">📊</div>尚無資料</div>
+    </div>
+  </div>
+
+  <!-- PAGE: 購車 -->
+  <div class="page" id="page-purchase">
+    <div class="sec">🚙 車輛資料</div>
+    <div class="grid2">
+      <div class="fg"><label>車牌號碼</label><input type="text" id="plate" placeholder="ABC-1234"></div>
+      <div class="fg"><label>車款／年份</label><input type="text" id="model" placeholder="Toyota Vios 2018"></div>
+      <div class="fg"><label>購買日期</label><input type="date" id="buyDate"></div>
+      <div class="fg"><label>賣方</label><input type="text" id="seller" placeholder="中古車商"></div>
+    </div>
+    <div id="pCats"></div>
+    <div class="sec" style="margin-top:14px">📝 備注</div>
+    <textarea id="noteArea" placeholder="購車相關備注..."></textarea>
+  </div>
+
+  <!-- PAGE: 加油 -->
+  <div class="page" id="page-fuel">
+    <div class="stats">
+      <div class="stat"><div class="l">加油總計</div><div class="v y" id="f-total">$0</div></div>
+      <div class="stat"><div class="l">總公升數</div><div class="v b" id="f-lts">0 L</div></div>
+      <div class="stat"><div class="l">平均油耗</div><div class="v g" id="f-kmpl">—</div></div>
+      <div class="stat"><div class="l">平均單價</div><div class="v o" id="f-avgp">—</div></div>
+      <div class="stat"><div class="l">加油次數</div><div class="v b" id="f-cnt">0</div></div>
+      <div class="stat"><div class="l">最新里程</div><div class="v" id="f-lodo" style="font-size:.9rem">—</div></div>
+    </div>
+    <div class="card">
+      <div class="sec" style="margin-top:0">⛽ 新增加油</div>
+      <div class="grid2">
+        <div class="fg"><label>日期</label><input type="date" id="f-date"></div>
+        <div class="fg"><label>里程數 (km)</label><input type="number" id="f-odo" placeholder="12345" inputmode="numeric"></div>
+      </div>
+      <div class="fg"><label>油種</label>
+        <select id="f-type"><option value="92">92 無鉛</option><option value="95" selected>95 無鉛</option><option value="98">98 無鉛</option><option value="柴油">柴油</option></select>
+      </div>
+      <div class="grid3">
+        <div class="fg"><label>公升 (L)</label><input type="number" id="f-liter" placeholder="40" step="0.01" inputmode="decimal"></div>
+        <div class="fg"><label>單價 (元/L)</label><input type="number" id="f-up" placeholder="32.5" step="0.1" inputmode="decimal"></div>
+        <div class="fg"><label>金額 (元)</label><input type="number" id="f-amt" placeholder="自動" inputmode="numeric"></div>
+      </div>
+      <div class="fg"><label>備注</label><input type="text" id="f-note" placeholder="加油站名稱..."></div>
+      <button class="btn" onclick="addFuel()">＋ 新增加油記錄</button>
+    </div>
+    <div class="sec">📋 加油歷史</div>
+    <div id="fuel-list"><div class="empty"><div class="ico">⛽</div>尚無加油記錄</div></div>
+  </div>
+
+  <!-- PAGE: 保養 -->
+  <div class="page" id="page-maint">
+    <div class="stats two">
+      <div class="stat"><div class="l">保養總計</div><div class="v y" id="m-total">$0</div></div>
+      <div class="stat"><div class="l">保養次數</div><div class="v g" id="m-cnt">0</div></div>
+      <div class="stat"><div class="l">上次保養</div><div class="v o" id="m-since">—</div></div>
+      <div class="stat"><div class="l">下次保養</div><div class="v r" id="m-next">—</div></div>
+    </div>
+    <div class="card">
+      <div class="sec" style="margin-top:0">🔧 新增保養</div>
+      <div class="grid2">
+        <div class="fg"><label>日期</label><input type="date" id="m-date"></div>
+        <div class="fg"><label>里程數 (km)</label><input type="number" id="m-odo" placeholder="15000" inputmode="numeric"></div>
+      </div>
+      <div class="fg"><label>保養類型</label>
+        <select id="m-type">
+          <option>機油更換</option><option>大保養</option><option>煞車系統</option>
+          <option>輪胎更換</option><option>電瓶更換</option><option>空調清洗</option>
+          <option>定期檢查</option><option>其他</option>
+        </select>
+      </div>
+      <div class="fg"><label>費用 (元)</label><input type="number" id="m-amt" placeholder="800" inputmode="numeric"></div>
+      <div class="fg"><label>工作項目說明</label><input type="text" id="m-desc" placeholder="換殼牌 5W40、濾清器..."></div>
+      <div class="fg"><label>下次建議里程 (km)（選填）</label><input type="number" id="m-next-odo" placeholder="20000" inputmode="numeric"></div>
+      <button class="btn" onclick="addMaint()">＋ 新增保養記錄</button>
+    </div>
+    <div class="sec">📋 保養歷史</div>
+    <div id="maint-list"><div class="empty"><div class="ico">🔧</div>尚無保養記錄</div></div>
+  </div>
+
+  <!-- PAGE: 設定 -->
+  <div class="page" id="page-settings">
+    <div class="sec">🚙 里程設定</div>
+    <div class="grid2">
+      <div class="fg"><label>目前總里程 (km)</label><input type="number" id="cur-odo" placeholder="25000" inputmode="numeric"></div>
+      <div class="fg"><label>油箱容量 (L)</label><input type="number" id="tank" placeholder="45" inputmode="numeric"></div>
+    </div>
+    <button class="btn" onclick="saveAll()">💾 儲存設定</button>
+    <div class="sep"></div>
+    <div class="sec">🔄 資料備份</div>
+    <p style="font-size:.75rem;color:var(--txm);margin-bottom:10px;line-height:1.6">資料自動存在手機中。可匯出 JSON 備份到 iCloud 雲端。</p>
+    <div style="display:flex;gap:8px">
+      <button class="btn-ghost" style="flex:1" onclick="exportJSON()">📋 匯出 JSON</button>
+      <button class="btn-ghost" style="flex:1" onclick="document.getElementById('importFile').click()">📂 匯入 JSON</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
+    </div>
+    <div class="sep"></div>
+    <div class="sec">⚠️ 危險操作</div>
+    <button class="danger-btn" onclick="clearAll()">🗑 清除所有資料</button>
+  </div>
+
+</div><!-- end scroll-area -->
+
+<!-- BOTTOM TABS -->
+<div class="bottom-tabs">
+  <button class="tab-item active" onclick="goTab('overview',this)">
+    <span class="icon">📊</span>總覽
+  </button>
+  <button class="tab-item" onclick="goTab('purchase',this)">
+    <span class="icon">🏷</span>購車
+  </button>
+  <button class="tab-item" onclick="goTab('fuel',this)">
+    <span class="icon">⛽</span>加油
+  </button>
+  <button class="tab-item" onclick="goTab('maint',this)">
+    <span class="icon">🔧</span>保養
+  </button>
+  <button class="tab-item" onclick="goTab('settings',this)">
+    <span class="icon">⚙️</span>設定
+  </button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──
+let S={
+  carInfo:{plate:'',model:'',buyDate:'',seller:''},
+  settings:{curOdo:0,tankSize:45},
+  purchases:{},
+  fuelLogs:[],
+  maintLogs:[],
+  note:'',
+};
+
+const PCAT=[
+  {id:'purchase',name:'購車費用',e:'💰',def:[{name:'車輛成交價',amount:0},{name:'仲介費',amount:0}]},
+  {id:'transfer',name:'過戶費用',e:'📋',def:[{name:'過戶手續費',amount:0},{name:'行照費',amount:0},{name:'監理站規費',amount:0}]},
+  {id:'insurance',name:'保險費用',e:'🛡️',def:[{name:'強制險',amount:0},{name:'任意險',amount:0}]},
+  {id:'tax',name:'稅務費用',e:'📄',def:[{name:'牌照稅',amount:0},{name:'燃料費',amount:0}]},
+  {id:'repair',name:'整備維修',e:'🔧',def:[{name:'機油更換',amount:0},{name:'煞車皮',amount:0}]},
+  {id:'accessory',name:'配件安裝',e:'🎛️',def:[{name:'行車記錄器',amount:0}]},
+  {id:'inspection',name:'驗車費用',e:'🔍',def:[{name:'驗車費',amount:0}]},
+  {id:'other',name:'其他',e:'📦',def:[]},
+];
+
+// ── TABS ──
+function goTab(name,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  document.getElementById('scrollArea').scrollTop=0;
+  if(name==='overview') refreshOverview();
+}
+
+// ── TODAY ──
+function td(){return new Date().toISOString().slice(0,10);}
+
+// ── PURCHASE CATS ──
+function initP(){PCAT.forEach(c=>{if(!S.purchases[c.id])S.purchases[c.id]=c.def.map(d=>({...d}));});}
+
+function renderP(){
+  const cont=document.getElementById('pCats');
+  cont.innerHTML='';
+  PCAT.forEach(cat=>{
+    const tot=pCatTot(cat.id);
+    const blk=document.createElement('div');
+    blk.className='acc-block'+(cat.id==='purchase'||cat.id==='transfer'?' open':'');
+    blk.innerHTML=`
+      <div class="acc-head" onclick="this.parentElement.classList.toggle('open')">
+        <div class="acc-head-l"><span>${cat.e}</span><span>${cat.name}</span></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="acc-total" id="ct-${cat.id}">$${tot.toLocaleString()}</span>
+          <span class="acc-chev">▼</span>
+        </div>
+      </div>
+      <div class="acc-body" id="cb-${cat.id}"></div>`;
+    cont.appendChild(blk);
+    renderPI(cat.id);
+  });
+}
+
+function renderPI(catId){
+  const body=document.getElementById('cb-'+catId);
+  body.innerHTML='';
+  (S.purchases[catId]||[]).forEach((item,i)=>{
+    const r=document.createElement('div');
+    r.className='erow';
+    r.innerHTML=`
+      <input type="text" placeholder="費用名稱" value="${esc(item.name)}"
+        oninput="S.purchases['${catId}'][${i}].name=this.value;rct('${catId}')">
+      <input type="number" placeholder="0" min="0" value="${item.amount||''}"
+        oninput="S.purchases['${catId}'][${i}].amount=parseFloat(this.value)||0;rct('${catId}')"
+        style="text-align:right" inputmode="numeric">
+      <button class="btn-rm" onclick="rmPI('${catId}',${i})">✕</button>`;
+    body.appendChild(r);
+  });
+  const b=document.createElement('button');
+  b.className='btn-add-row';b.textContent='＋ 新增項目';
+  b.onclick=()=>{S.purchases[catId].push({name:'',amount:0});renderPI(catId);};
+  body.appendChild(b);
+}
+
+function rmPI(c,i){S.purchases[c].splice(i,1);renderPI(c);rct(c);}
+function rct(c){const el=document.getElementById('ct-'+c);if(el)el.textContent='$'+pCatTot(c).toLocaleString();}
+function pCatTot(c){return(S.purchases[c]||[]).reduce((s,i)=>s+(parseFloat(i.amount)||0),0);}
+function pTotal(){return PCAT.reduce((s,c)=>s+pCatTot(c.id),0);}
+
+// ── FUEL ──
+document.addEventListener('input',e=>{
+  if(e.target.id==='f-liter'||e.target.id==='f-up'){
+    const l=parseFloat(document.getElementById('f-liter').value)||0;
+    const p=parseFloat(document.getElementById('f-up').value)||0;
+    if(l&&p)document.getElementById('f-amt').value=Math.round(l*p);
+  }
+});
+
+function addFuel(){
+  const date=document.getElementById('f-date').value;
+  const odo=parseFloat(document.getElementById('f-odo').value)||0;
+  const type=document.getElementById('f-type').value;
+  const liters=parseFloat(document.getElementById('f-liter').value)||0;
+  const up=parseFloat(document.getElementById('f-up').value)||0;
+  const amount=parseFloat(document.getElementById('f-amt').value)||(Math.round(liters*up));
+  const note=document.getElementById('f-note').value.trim();
+  if(!date||!liters||!amount){toast('⚠️ 請填日期、公升數及金額');return;}
+  S.fuelLogs.push({date,odo,type,liters,unitPrice:up,amount,note});
+  S.fuelLogs.sort((a,b)=>b.date.localeCompare(a.date));
+  ['f-odo','f-liter','f-up','f-amt','f-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-date').value=td();
+  renderFuelList();refreshFuelStats();autoSave();
+}
+
+function renderFuelList(){
+  const cont=document.getElementById('fuel-list');
+  if(!S.fuelLogs.length){cont.innerHTML='<div class="empty"><div class="ico">⛽</div>尚無加油記錄</div>';return;}
+  cont.innerHTML='';
+  const div=document.createElement('div');div.className='log-list';
+  S.fuelLogs.forEach((e,i)=>{
+    let kmpl='—';
+    if(e.odo&&i<S.fuelLogs.length-1){
+      const prev=S.fuelLogs.slice(i+1).find(x=>x.odo>0);
+      if(prev&&prev.odo&&e.odo>prev.odo&&e.liters)kmpl=((e.odo-prev.odo)/e.liters).toFixed(1)+' km/L';
+    }
+    const card=document.createElement('div');card.className='log-card';
+    card.innerHTML=`
+      <button class="log-del" onclick="delFuel(${i})">🗑</button>
+      <div class="top">
+        <div>
+          <div class="date">${e.date}　${e.type}</div>
+          <div class="row">
+            ${e.odo?`<span class="chip b">📍 ${e.odo.toLocaleString()} km</span>`:''}
+            <span class="chip g">🛢 ${e.liters.toFixed(1)} L</span>
+            ${e.unitPrice?`<span class="chip o">$${e.unitPrice.toFixed(1)}/L</span>`:''}
+            ${kmpl!=='—'?`<span class="chip">⚡ ${kmpl}</span>`:''}
+          </div>
+          ${e.note?`<div class="log-note">${esc(e.note)}</div>`:''}
+        </div>
+        <div class="amount">$${e.amount.toLocaleString()}</div>
+      </div>`;
+    div.appendChild(card);
+  });
+  cont.appendChild(div);
+}
+
+function delFuel(i){
+  if(!confirm('刪除此加油記錄？'))return;
+  S.fuelLogs.splice(i,1);renderFuelList();refreshFuelStats();autoSave();
+}
+
+function refreshFuelStats(){
+  const logs=S.fuelLogs;
+  const total=logs.reduce((s,e)=>s+e.amount,0);
+  const liters=logs.reduce((s,e)=>s+e.liters,0);
+  const cnt=logs.length;
+  const avgP=liters>0?'$'+(total/liters).toFixed(1)+'/L':'—';
+  const odoed=logs.filter(e=>e.odo>0).sort((a,b)=>a.odo-b.odo);
+  let kmpl='—';
+  if(odoed.length>=2){
+    const dist=odoed[odoed.length-1].odo-odoed[0].odo;
+    const used=logs.slice(0,logs.length-1).reduce((s,e)=>s+e.liters,0);
+    if(used>0)kmpl=(dist/used).toFixed(1)+' km/L';
+  }
+  const lastOdo=odoed.length?odoed[odoed.length-1].odo.toLocaleString()+' km':'—';
+  setT('f-total','$'+total.toLocaleString());
+  setT('f-lts',liters.toFixed(1)+' L');
+  setT('f-kmpl',kmpl);
+  setT('f-avgp',avgP);
+  setT('f-cnt',cnt);
+  setT('f-lodo',lastOdo);
+  setT('ov-kmpl',kmpl);
+}
+
+// ── MAINT ──
+function addMaint(){
+  const date=document.getElementById('m-date').value;
+  const odo=parseFloat(document.getElementById('m-odo').value)||0;
+  const type=document.getElementById('m-type').value;
+  const amount=parseFloat(document.getElementById('m-amt').value)||0;
+  const desc=document.getElementById('m-desc').value.trim();
+  const nextOdo=parseFloat(document.getElementById('m-next-odo').value)||0;
+  if(!date||!amount){toast('⚠️ 請填日期及費用');return;}
+  S.maintLogs.push({date,odo,type,amount,desc,nextOdo});
+  S.maintLogs.sort((a,b)=>b.date.localeCompare(a.date));
+  ['m-odo','m-amt','m-desc','m-next-odo'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('m-date').value=td();
+  renderMaintList();refreshMaintStats();autoSave();
+}
+
+function renderMaintList(){
+  const cont=document.getElementById('maint-list');
+  if(!S.maintLogs.length){cont.innerHTML='<div class="empty"><div class="ico">🔧</div>尚無保養記錄</div>';return;}
+  cont.innerHTML='';
+  const curOdo=S.settings.curOdo||0;
+  const div=document.createElement('div');div.className='log-list';
+  S.maintLogs.forEach((e,i)=>{
+    let badge='';
+    if(e.nextOdo&&curOdo){
+      const diff=e.nextOdo-curOdo;
+      if(diff<0)badge=`<div class="badge err">超期 ${Math.abs(diff).toLocaleString()} km</div>`;
+      else if(diff<2000)badge=`<div class="badge warn">即將到期（剩 ${diff.toLocaleString()} km）</div>`;
+      else badge=`<div class="badge ok">正常（剩 ${diff.toLocaleString()} km）</div>`;
+    }
+    const card=document.createElement('div');card.className='log-card';
+    card.innerHTML=`
+      <button class="log-del" onclick="delMaint(${i})">🗑</button>
+      <div class="top">
+        <div>
+          <div class="date">${e.date}</div>
+          <div style="font-weight:600;margin:3px 0">${e.type}</div>
+          <div class="row">
+            ${e.odo?`<span class="chip b">📍 ${e.odo.toLocaleString()} km</span>`:''}
+            ${e.nextOdo?`<span class="chip o">下次 ${e.nextOdo.toLocaleString()} km</span>`:''}
+          </div>
+          ${e.desc?`<div class="log-note">${esc(e.desc)}</div>`:''}
+          ${badge}
+        </div>
+        <div class="amount">$${e.amount.toLocaleString()}</div>
+      </div>`;
+    div.appendChild(card);
+  });
+  cont.appendChild(div);
+}
+
+function delMaint(i){
+  if(!confirm('刪除此保養記錄？'))return;
+  S.maintLogs.splice(i,1);renderMaintList();refreshMaintStats();autoSave();
+}
+
+function refreshMaintStats(){
+  const total=S.maintLogs.reduce((s,e)=>s+e.amount,0);
+  const cnt=S.maintLogs.length;
+  let since='—',nextStr='—';
+  if(cnt){
+    const diff=Math.floor((Date.now()-new Date(S.maintLogs[0].date))/86400000);
+    since=diff===0?'今天':diff+' 天前';
+    const nxt=S.maintLogs.find(e=>e.nextOdo>0);
+    if(nxt&&S.settings.curOdo){
+      const rem=nxt.nextOdo-S.settings.curOdo;
+      nextStr=rem>0?rem.toLocaleString()+' km':rem===0?'已到期':'超'+Math.abs(rem).toLocaleString()+'km';
+    }
+  }
+  setT('m-total','$'+total.toLocaleString());
+  setT('m-cnt',cnt);
+  setT('m-since',since);
+  setT('m-next',nextStr);
+}
+
+// ── OVERVIEW ──
+function refreshOverview(){
+  const buy=pTotal();
+  const fuel=S.fuelLogs.reduce((s,e)=>s+e.amount,0);
+  const maint=S.maintLogs.reduce((s,e)=>s+e.amount,0);
+  const grand=buy+fuel+maint;
+  const m=new Date().toISOString().slice(0,7);
+  const monthT=S.fuelLogs.filter(e=>e.date.startsWith(m)).reduce((s,e)=>s+e.amount,0)
+              +S.maintLogs.filter(e=>e.date.startsWith(m)).reduce((s,e)=>s+e.amount,0);
+  setT('ov-grand','$'+grand.toLocaleString());
+  setT('ov-month','$'+monthT.toLocaleString());
+  setT('ov-buy','$'+buy.toLocaleString());
+  setT('ov-fuel','$'+fuel.toLocaleString());
+  setT('ov-maint','$'+maint.toLocaleString());
+  setT('ov-fc',S.fuelLogs.length);
+  setT('ov-mc',S.maintLogs.length);
+  renderOvChart(buy,fuel,maint);
+  renderTrend();
+}
+
+function renderOvChart(buy,fuel,maint){
+  const cont=document.getElementById('ov-chart');
+  cont.innerHTML='';
+  const items=[
+    {name:'購車費用',val:buy,color:'var(--acc)'},
+    {name:'加油費用',val:fuel,color:'var(--blue)'},
+    {name:'保養費用',val:maint,color:'var(--green)'},
+  ].filter(c=>c.val>0);
+  if(!items.length){cont.innerHTML='<div class="empty"><div class="ico">📊</div>尚無資料</div>';return;}
+  const maxV=Math.max(...items.map(c=>c.val),1);
+  items.forEach(c=>{
+    const row=document.createElement('div');row.className='bar-row';
+    row.innerHTML=`
+      <div class="bar-lbl">${c.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${c.val/maxV*100}%;background:${c.color}"></div></div>
+      <div class="bar-val" style="color:${c.color}">$${c.val.toLocaleString()}</div>`;
+    cont.appendChild(row);
+  });
+}
+
+function renderTrend(){
+  const canvas=document.getElementById('trendCanvas');
+  const ctx=canvas.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.parentElement.clientWidth-28;
+  const H=170;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,W,H);
+  const months=[];
+  for(let i=11;i>=0;i--){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-i);months.push(d.toISOString().slice(0,7));}
+  const fD=months.map(m=>S.fuelLogs.filter(e=>e.date.startsWith(m)).reduce((s,e)=>s+e.amount,0));
+  const mD=months.map(m=>S.maintLogs.filter(e=>e.date.startsWith(m)).reduce((s,e)=>s+e.amount,0));
+  const maxV=Math.max(...fD.map((v,i)=>v+mD[i]),1);
+  const pl={l:4,r:4,t:12,b:28};
+  const cW=W-pl.l-pl.r,cH=H-pl.t-pl.b;
+  const bW=cW/months.length;
+  ctx.font=`9px -apple-system,sans-serif`;
+  months.forEach((mo,i)=>{
+    const x=pl.l+i*bW+bW*0.12,bw=bW*0.76;
+    const fh=(fD[i]/maxV)*cH,mh=(mD[i]/maxV)*cH;
+    if(fD[i]){ctx.fillStyle='rgba(74,184,232,.75)';ctx.beginPath();ctx.roundRect(x,pl.t+cH-fh,bw*.5,fh,[2,2,0,0]);ctx.fill();}
+    if(mD[i]){ctx.fillStyle='rgba(94,196,106,.75)';ctx.beginPath();ctx.roundRect(x+bw*.5,pl.t+cH-mh,bw*.5,mh,[2,2,0,0]);ctx.fill();}
+    ctx.fillStyle='#555';ctx.textAlign='center';
+    ctx.fillText(mo.slice(5),pl.l+i*bW+bW/2,H-pl.b+12);
+  });
+  ctx.fillStyle='rgba(74,184,232,.8)';ctx.fillRect(W-100,6,10,8);
+  ctx.fillStyle='#777';ctx.textAlign='left';ctx.font='9px -apple-system,sans-serif';
+  ctx.fillText('加油',W-86,13);
+  ctx.fillStyle='rgba(94,196,106,.8)';ctx.fillRect(W-50,6,10,8);
+  ctx.fillStyle='#777';ctx.fillText('保養',W-36,13);
+}
+
+// ── SAVE / LOAD ──
+function collectUI(){
+  S.carInfo={
+    plate:document.getElementById('plate').value,
+    model:document.getElementById('model').value,
+    buyDate:document.getElementById('buyDate').value,
+    seller:document.getElementById('seller').value,
+  };
+  S.settings.curOdo=parseFloat(document.getElementById('cur-odo').value)||0;
+  S.settings.tankSize=parseFloat(document.getElementById('tank').value)||45;
+  S.note=document.getElementById('noteArea').value;
+}
+
+function autoSave(){
+  collectUI();
+  localStorage.setItem('carMgr3',JSON.stringify(S));
+}
+
+function saveAll(){
+  autoSave();
+  toast('✅ 已儲存');
+  refreshOverview();refreshFuelStats();refreshMaintStats();
+  // update subtitle
+  const m=S.carInfo.model;
+  if(m)document.getElementById('car-subtitle').textContent=m;
+}
+
+function loadAll(){
+  const raw=localStorage.getItem('carMgr3');
+  if(raw){try{Object.assign(S,JSON.parse(raw));}catch(e){}}
+  document.getElementById('plate').value=S.carInfo?.plate||'';
+  document.getElementById('model').value=S.carInfo?.model||'';
+  document.getElementById('buyDate').value=S.carInfo?.buyDate||'';
+  document.getElementById('seller').value=S.carInfo?.seller||'';
+  document.getElementById('noteArea').value=S.note||'';
+  document.getElementById('cur-odo').value=S.settings?.curOdo||'';
+  document.getElementById('tank').value=S.settings?.tankSize||'';
+  if(S.carInfo?.model)document.getElementById('car-subtitle').textContent=S.carInfo.model;
+}
+
+function exportJSON(){
+  collectUI();
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='car_backup_'+td()+'.json';a.click();
+  toast('📋 匯出成功');
+}
+
+function handleImport(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      Object.assign(S,JSON.parse(ev.target.result));
+      loadAll();initP();renderP();
+      renderFuelList();refreshFuelStats();
+      renderMaintList();refreshMaintStats();
+      refreshOverview();
+      toast('📂 匯入成功');
+    }catch(err){toast('❌ 格式錯誤');}
+  };
+  r.readAsText(f);e.target.value='';
+}
+
+function clearAll(){
+  if(!confirm('確定清除所有資料？無法還原！'))return;
+  localStorage.removeItem('carMgr3');
+  S={carInfo:{},settings:{curOdo:0,tankSize:45},purchases:{},fuelLogs:[],maintLogs:[],note:''};
+  loadAll();initP();renderP();
+  renderFuelList();refreshFuelStats();
+  renderMaintList();refreshMaintStats();
+  refreshOverview();
+  toast('🗑 已清除');
+}
+
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function setT(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// ── SERVICE WORKER ──
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+
+// ── INSTALL HINT ── (show if NOT in standalone mode)
+if(!window.navigator.standalone){
+  document.getElementById('install-hint').classList.add('show');
+}
+
+// ── AUTO-SAVE on input change (purchases) ──
+// Debounced save so typing doesn't spam localStorage
+let saveTimer;
+function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(autoSave,1500);}
+document.addEventListener('input',e=>{
+  if(e.target.closest('#pCats')||e.target.closest('#page-purchase')){scheduleSave();}
+});
+
+// ── INIT ──
+document.getElementById('f-date').value=td();
+document.getElementById('m-date').value=td();
+loadAll();
+initP();
+renderP();
+renderFuelList();refreshFuelStats();
+renderMaintList();refreshMaintStats();
+refreshOverview();
+window.addEventListener('resize',()=>{
+  if(document.getElementById('page-overview').classList.contains('active'))renderTrend();
+});
+</script>
+</body>
+</html>
